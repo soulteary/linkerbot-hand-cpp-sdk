@@ -469,7 +469,11 @@ TEST_CASE("HandDevice selects every backend and has idempotent lifecycle", "[com
             size_t factory_calls = 0;
             linkerbot::can::FakeTransport *transport = nullptr;
             std::shared_ptr<o30_comm::HopEndpoint> hop;
-            HandDevice device(config_for(model), [&] {
+            auto config = config_for(model);
+            // Lifecycle coverage includes paced multi-frame baseline reads on reopen.
+            // Keep scheduler headroom here; deadline behavior has dedicated tests.
+            config.transaction_timeout = std::chrono::seconds{1};
+            HandDevice device(config, [&] {
                 ++factory_calls;
                 auto next = std::make_unique<linkerbot::can::FakeTransport>();
                 transport = next.get();
