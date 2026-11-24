@@ -245,10 +245,11 @@ TEST_CASE("comm: a persist failure leaves the original mapping path untouched", 
     // cross-process lock file (prefix + ".lock") is expected to persist
     // across calls by design, so it is excluded from the leak check.
     std::size_t leftover_count = 0;
-    const auto prefix = path.filename().string();
-    const auto lock_name = prefix + ".lock";
+    // Native strings also preserve unrelated Unicode filenames on Windows.
+    const auto prefix = path.filename().native();
+    const auto lock_name = prefix + std::filesystem::path(".lock").native();
     for (const auto &entry : std::filesystem::directory_iterator(path.parent_path())) {
-        const auto name = entry.path().filename().string();
+        const auto name = entry.path().filename().native();
         if (name != prefix && name != lock_name && name.rfind(prefix, 0) == 0) {
             ++leftover_count;
         }
